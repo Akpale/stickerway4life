@@ -112,10 +112,10 @@ export default function ImageUpload() {
                     if (canvas.height >= 632) {
                       fontSize = 20; // PC
 
-                    } else if (canvas.height < 632 && canvas.height > 337) {
+                    } else if (canvas.height >= 400 && canvas.height < 631) {
                       fontSize = 18; // Tablette
 
-                    } else {
+                    } else if (canvas.height <= 399) {
                       fontSize = 10; // Mobile
                       coeffW = 0.9;
                       coeffH = 0.57;
