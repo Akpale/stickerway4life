@@ -360,13 +360,13 @@ export default function ImageUpload() {
                 <input
                   type="radio"
                   name="textOption"
-                  value="Les mots ont le pouvoir de diviser ou d&lsquo;unir, choisissons donc des mots de paix, de respect et d&lsquo;unité lors de nos prises de parole."
-                  checked={text === "Les mots ont le pouvoir de diviser ou d&lsquo;unir, choisissons donc des mots de paix, de respect et d&lsquo;unité lors de nos prises de parole."}
-                  onChange={() => setText("Les mots ont le pouvoir de diviser ou d&lsquo;unir, choisissons donc des mots de paix, de respect et d&lsquo;unité lors de nos prises de parole.")}
+                  value="Les mots ont le pouvoir de diviser ou d'unir, choisissons donc des mots de paix, de respect et d'unité lors de nos prises de parole."
+                  checked={text === "Les mots ont le pouvoir de diviser ou d'unir, choisissons donc des mots de paix, de respect et d'unité lors de nos prises de parole."}
+                  onChange={() => setText("Les mots ont le pouvoir de diviser ou d'unir, choisissons donc des mots de paix, de respect et d'unité lors de nos prises de parole.")}
                   className="mr-2"
                 />
                 <p className="w-[80%] max-w-[600px]">
-                  Les mots ont le pouvoir de diviser ou d&apos;unir, choisissons donc des mots de paix, de respect et d&apos;unité lors de nos prises de parole.
+                  Les mots ont le pouvoir de diviser ou d'unir, choisissons donc des mots de paix, de respect et d'unité lors de nos prises de parole.
                 </p>
               </label>
               <label className="flex items-center">
@@ -404,12 +404,12 @@ export default function ImageUpload() {
 
           <h2 className="text-lg font-semibold mb-4 mt-8">Etape 3 : Télécharger votre image en appuyant sur le bouton &quot;Télécharger&quot;</h2>
 
-          <div className="flex flex-col w-full md:h-[70vh] bg-gray-100 p-4">
+          <div className="flex flex-col w-full bg-gray-100 p-4 min-h-[350px] md:min-h-[380px] lg:min-h-[550px]">
             {/* Aperçu de l'image */}
-            <div className="flex-1 p-4 max-w-2xl mx-auto w-full">
+            <div className="flex-1 p-4 max-w-2xl mx-auto w-full flex items-center justify-center">
               <div
                 ref={resultRef}
-                className="relative flex items-center justify-center border-2 border-dashed rounded-lg bg-white overflow-hidden mx-auto"
+                className="relative flex items-center justify-center border-2 border-dashed rounded-lg bg-white overflow-hidden"
                 style={{
                   aspectRatio: "1 / 1",
                   backgroundImage: backgroundImage
@@ -419,10 +419,9 @@ export default function ImageUpload() {
                   backgroundPosition: `${backgroundPosition.x}% ${backgroundPosition.y}%`,
                   backgroundRepeat: "no-repeat",
                   borderRadius: `${borderRadius}px`,
-                  width: "100%",
-                  maxWidth: "700px",
-                  minHeight: "300px",
-
+                  width: "90%",
+                  maxWidth: "550px",
+                  minHeight: "280px",
                 }}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
@@ -487,15 +486,15 @@ export default function ImageUpload() {
           </div>
 
           {/* Bouton pour sélectionner une image */}
-          <div className="flex mt-6 flex-col md:flex-row items-center justify-between gap-4">
-            <div className="w-full md:w-[150px]">
+          <div className="flex mt-6 flex-col items-center justify-between gap-4 sm:flex-row md:flex-row lg:flex-row">
+            <div className="w-full sm:w-[150px] md:w-[150px] lg:w-[150px]">
               <input {...getInputProps()} id="fileInput" className="hidden" />
               <Button onClick={openFileSelector} className="w-full h-10">
                 Sélectionner une image
               </Button>
             </div>
 
-            <div className="w-full md:w-[150px] border border-gray-300 rounded-lg p-3 bg-white">
+            <div className="w-full sm:w-[150px] md:w-[150px] lg:w-[150px] border border-gray-300 rounded-lg p-3 bg-white">
               <SettingSlider
                 label="Zoom"
                 min={44}
@@ -506,7 +505,7 @@ export default function ImageUpload() {
               />
             </div>
 
-            <div className="w-full md:w-[150px]">
+            <div className="w-full sm:w-[150px] md:w-[150px] lg:w-[150px]">
               <Button onClick={handleDownload} className="w-full h-10">
                 <Download className="h-4 w-4 mr-2" />
                 Télécharger
