@@ -410,12 +410,12 @@ export default function ImageUpload() {
 
           <h2 className="text-lg font-semibold mb-4 mt-8">Etape 3 : Télécharger votre image en appuyant sur le bouton &quot;Télécharger&quot;</h2>
 
-          <div className="flex flex-col w-full bg-gray-100 p-4 min-h-[350px] md:min-h-[380px] lg:min-h-[550px]">
+          <div className="flex flex-col w-full bg-gray-100 p-1 min-h-[350px] md:min-h-[380px] lg:min-h-[550px]">
             {/* Aperçu de l'image */}
-            <div className="flex-1 p-4 max-w-2xl mx-auto w-full flex items-center justify-center">
+            <div className="flex-1 p-1 max-w-4xl mx-auto w-full flex items-center justify-center">
               <div
                 ref={resultRef}
-                className="relative flex items-center justify-center border-2 border-dashed rounded-lg bg-white overflow-hidden"
+                className="relative flex items-center justify-center border border-dashed rounded-lg bg-white overflow-hidden"
                 style={{
                   aspectRatio: "1 / 1",
                   backgroundImage: backgroundImage
@@ -425,9 +425,9 @@ export default function ImageUpload() {
                   backgroundPosition: `${backgroundPosition.x}% ${backgroundPosition.y}%`,
                   backgroundRepeat: "no-repeat",
                   borderRadius: `${borderRadius}px`,
-                  width: "90%",
-                  maxWidth: "550px",
-                  minHeight: "280px",
+                  width: "100%",
+                  maxWidth: "950px",
+                  minHeight: "340px",
                 }}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
@@ -443,8 +443,8 @@ export default function ImageUpload() {
                   <Image
                     src={overlayImage}
                     alt="Overlay"
-                    width={1000}
-                    height={1000}
+                    width={1200}
+                    height={1200}
                     className="absolute inset-0 w-full h-full object-contain pointer-events-none"
                   />
                 )}
