@@ -57,22 +57,28 @@ export default function ImageUpload() {
       try {
         // Créer un canvas temporaire pour le rendu
         const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
         const element = resultRef.current;
 
         // Définir les dimensions du canvas
         canvas.width = element.offsetWidth;
         canvas.height = element.offsetHeight;
-        //alert(canvas.height);
 
         // Remplir le fond
         if (ctx) {
+          // Désactiver le lissage d'image pour une meilleure netteté
+          ctx.imageSmoothingEnabled = false;
+
+          // Appliquer des paramètres pour améliorer la netteté
+          ctx.globalCompositeOperation = 'source-over';
+
           ctx.fillStyle = 'white';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
           // Dessiner l'image de fond si elle existe
           if (backgroundImage) {
             const bgImg = document.createElement('img');
+            bgImg.crossOrigin = "anonymous";
             bgImg.onload = () => {
               // Appliquer le zoom et le positionnement comme dans l'aperçu
 
@@ -110,7 +116,7 @@ export default function ImageUpload() {
                       fontSize = 18; // Tablette
 
                     } else {
-                      fontSize = 15; // Mobile
+                      fontSize = 10; // Mobile
                       coeffW = 0.9;
                       coeffH = 0.57;
                       interL = 12;
@@ -464,7 +470,7 @@ export default function ImageUpload() {
                         left: "50%",
                         transform: "translate(-50%, -50%)",
                         color: "#ffffff",
-                        fontSize: "clamp(12px, 3vw, 18px)", // Taille responsive
+                        fontSize: "clamp(9px, 3vw, 18px)", // Taille responsive
                         fontFamily: "'Poppins', sans-serif",
                         textAlign: "center",
                         pointerEvents: "none",
