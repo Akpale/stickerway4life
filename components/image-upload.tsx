@@ -366,7 +366,7 @@ export default function ImageUpload() {
                   className="mr-2"
                 />
                 <p className="w-[80%] max-w-[600px]">
-                  Les mots ont le pouvoir de diviser ou d'unir, choisissons donc des mots de paix, de respect et d'unité lors de nos prises de parole.
+                  Les mots ont le pouvoir de diviser ou d&apos;unir, choisissons donc des mots de paix, de respect et d&apos;unité lors de nos prises de parole.
                 </p>
               </label>
               <label className="flex items-center">
