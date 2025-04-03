@@ -61,8 +61,15 @@ export default function ImageUpload() {
         const element = resultRef.current;
 
         // Définir les dimensions du canvas
-        canvas.width = element.offsetWidth;
-        canvas.height = element.offsetHeight;
+        let canvasWidth = element.offsetWidth;
+        let canvasHeight = element.offsetHeight;
+
+        // Fixer les dimensions minimales à 385
+        if (canvasWidth <= 385) canvasWidth = 450;
+        if (canvasHeight <= 385) canvasHeight = 450;
+
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
 
         // Remplir le fond
         if (ctx) {
@@ -87,6 +94,8 @@ export default function ImageUpload() {
               const scaleFactor = zoom / 100;
               const scaledWidth = canvas.width * scaleFactor;
               const scaledHeight = canvas.height * scaleFactor;
+
+              //alert(canvas.height)
 
               // Calculer la position en fonction du backgroundPosition
               const posX = (canvas.width - scaledWidth) * (backgroundPosition.x / 100);
@@ -114,12 +123,13 @@ export default function ImageUpload() {
 
                     } else if (canvas.height >= 400 && canvas.height < 631) {
                       fontSize = 18; // Tablette
+                      coeffH = 0.57;
 
                     } else if (canvas.height <= 399) {
-                      fontSize = 10; // Mobile
+                      fontSize = 16; // Mobile
                       coeffW = 0.9;
                       coeffH = 0.57;
-                      interL = 12;
+                      interL = 14;
                     }
 
                     ctx.font = `${fontSize}px Poppins, sans-serif`;
