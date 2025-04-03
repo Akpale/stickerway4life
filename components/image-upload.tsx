@@ -65,8 +65,8 @@ export default function ImageUpload() {
         let canvasHeight = element.offsetHeight;
 
         // Fixer les dimensions minimales à 385
-        if (canvasWidth <= 385) canvasWidth = 450;
-        if (canvasHeight <= 385) canvasHeight = 450;
+        if (canvasWidth <= 385) canvasWidth = 500;
+        if (canvasHeight <= 385) canvasHeight = 500;
 
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
