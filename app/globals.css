@@ -68,11 +68,25 @@ body {
     --chart-5: 340 75% 55%;
   }
 
-  /* img,
+  /* Amélioration de la netteté des images */
+  img,
   canvas {
-    image-rendering: crisp-edges;
     image-rendering: -webkit-optimize-contrast;
-  } */
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Styles spécifiques pour l'aperçu du sticker */
+  .sticker-preview {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
 }
 
 @layer base {

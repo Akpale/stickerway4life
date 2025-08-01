@@ -57,30 +57,38 @@ export default function ImageUpload() {
       try {
         // Créer un canvas temporaire pour le rendu
         const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
+        const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: false });
         const element = resultRef.current;
 
-        // Définir les dimensions du canvas
+        // Définir les dimensions du canvas en utilisant les dimensions réelles de l'aperçu
         let canvasWidth = element.offsetWidth;
         let canvasHeight = element.offsetHeight;
 
-        // Fixer les dimensions minimales à 385
-        if (canvasWidth <= 385) canvasWidth = 500;
-        if (canvasHeight <= 385) canvasHeight = 500;
+        // Utiliser les dimensions exactes de l'aperçu
+        canvasWidth = element.offsetWidth;
+        canvasHeight = element.offsetHeight;
+
+        // Fixer les dimensions minimales à 500
+        if (canvasWidth < 500) canvasWidth = 500;
+        if (canvasHeight < 500) canvasHeight = 500;
 
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
 
         // Remplir le fond
         if (ctx) {
-          // Désactiver le lissage d'image pour une meilleure netteté
-          ctx.imageSmoothingEnabled = false;
+          // Améliorer la qualité du rendu
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
 
           // Appliquer des paramètres pour améliorer la netteté
           ctx.globalCompositeOperation = 'source-over';
 
-          ctx.fillStyle = 'white';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          // Ne pas remplir le fond si nous avons un overlay (il couvrira tout)
+          if (!overlayImage) {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
 
           // Dessiner l'image de fond si elle existe
           if (backgroundImage) {
@@ -109,6 +117,7 @@ export default function ImageUpload() {
                 const overlayImg = document.createElement('img');
                 overlayImg.crossOrigin = "anonymous";
                 overlayImg.onload = () => {
+                  // Dessiner l'overlay pour remplir complètement le canvas
                   ctx.drawImage(overlayImg, 0, 0, canvas.width, canvas.height);
 
                   // Ajouter le texte si présent
@@ -181,6 +190,7 @@ export default function ImageUpload() {
               const overlayImg = document.createElement('img');
               overlayImg.crossOrigin = "anonymous";
               overlayImg.onload = () => {
+                // Dessiner l'overlay pour remplir complètement le canvas
                 ctx.drawImage(overlayImg, 0, 0, canvas.width, canvas.height);
 
                 // Ajouter le texte si présent
