@@ -8,8 +8,6 @@ import { useDropzone } from "react-dropzone";
 import { saveAs } from "file-saver";
 import Image from "next/image";
 
-
-
 export default function ImageUpload() {
   const [zoom, setZoom] = useState(44);
   const borderRadius = 0;
@@ -24,7 +22,6 @@ export default function ImageUpload() {
 
   // États pour le texte
   const [text, setText] = useState("");
-
 
   // Images prédéfinies pour la superposition
   const predefinedBackgrounds = [
@@ -45,28 +42,22 @@ export default function ImageUpload() {
     reader.readAsDataURL(file);
   }, []);
 
-
   const { getInputProps } = useDropzone({
     onDrop,
     accept: { "image/*": [] },
   });
 
-  // Fonction de téléchargement
+  // 🔧 FONCTION CORRIGÉE - Synchronisation parfaite CSS/Canvas
   const handleDownload = () => {
     if (resultRef.current) {
       try {
-        // Créer un canvas temporaire pour le rendu
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: false });
         const element = resultRef.current;
 
-        // Définir les dimensions du canvas en utilisant les dimensions réelles de l'aperçu
+        // Utiliser les dimensions exactes de l'aperçu
         let canvasWidth = element.offsetWidth;
         let canvasHeight = element.offsetHeight;
-
-        // Utiliser les dimensions exactes de l'aperçu
-        canvasWidth = element.offsetWidth;
-        canvasHeight = element.offsetHeight;
 
         // Fixer les dimensions minimales à 500
         if (canvasWidth < 500) canvasWidth = 500;
@@ -75,42 +66,45 @@ export default function ImageUpload() {
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
 
-        // Remplir le fond
         if (ctx) {
           // Améliorer la qualité du rendu
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
-
-          // Appliquer des paramètres pour améliorer la netteté
           ctx.globalCompositeOperation = 'source-over';
-
-          // Ne pas remplir le fond si nous avons un overlay (il couvrira tout)
-          if (!overlayImage) {
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-          }
 
           // Dessiner l'image de fond si elle existe
           if (backgroundImage) {
             const bgImg = document.createElement('img');
             bgImg.crossOrigin = "anonymous";
             bgImg.onload = () => {
-              // Appliquer le zoom et le positionnement comme dans l'aperçu
 
+              // ✅ CORRECTION PRINCIPALE : Calculs synchronisés avec CSS background-position
 
-              // Calculer les dimensions avec le zoom
-              const scaleFactor = zoom / 100;
-              const scaledWidth = canvas.width * scaleFactor;
-              const scaledHeight = canvas.height * scaleFactor;
+              // 1. Calculer les dimensions de l'image avec le zoom
+              const imageAspectRatio = bgImg.naturalWidth / bgImg.naturalHeight;
+              const containerAspectRatio = canvas.width / canvas.height;
 
-              //alert(canvas.height)
+              let renderWidth, renderHeight;
 
-              // Calculer la position en fonction du backgroundPosition
-              const posX = (canvas.width - scaledWidth) * (backgroundPosition.x / 100);
-              const posY = (canvas.height - scaledHeight) * (backgroundPosition.y / 100);
+              // Déterminer comment l'image s'adapte (comme CSS background-size: cover)
+              if (imageAspectRatio > containerAspectRatio) {
+                // Image plus large : ajuster sur la hauteur
+                renderHeight = canvas.height * (zoom / 100);
+                renderWidth = renderHeight * imageAspectRatio;
+              } else {
+                // Image plus haute : ajuster sur la largeur
+                renderWidth = canvas.width * (zoom / 100);
+                renderHeight = renderWidth / imageAspectRatio;
+              }
 
-              // Dessiner l'image avec le zoom et le positionnement
-              ctx.drawImage(bgImg, posX, posY, scaledWidth, scaledHeight);
+              // 2. Calculer la position EXACTEMENT comme CSS background-position
+              // CSS background-position: X% Y% signifie :
+              // - Point à X% de l'image = Point à X% du container
+              const offsetX = (canvas.width - renderWidth) * (backgroundPosition.x / 100);
+              const offsetY = (canvas.height - renderHeight) * (backgroundPosition.y / 100);
+
+              // 3. Dessiner l'image avec les calculs synchronisés
+              ctx.drawImage(bgImg, offsetX, offsetY, renderWidth, renderHeight);
 
               // Dessiner l'overlay si présent
               if (overlayImage) {
@@ -120,50 +114,9 @@ export default function ImageUpload() {
                   // Dessiner l'overlay pour remplir complètement le canvas
                   ctx.drawImage(overlayImg, 0, 0, canvas.width, canvas.height);
 
-                  // Ajouter le texte si présent
+                  // Ajouter le texte avec positionnement responsive
                   if (text) {
-
-                    let fontSize;
-                    let coeffW = 0.8;
-                    let coeffH = 0.58;
-                    let interL = 18;
-                    if (canvas.height >= 632) {
-                      fontSize = 20; // PC
-
-                    } else if (canvas.height >= 400 && canvas.height < 631) {
-                      fontSize = 18; // Tablette
-                      coeffH = 0.57;
-
-                    } else if (canvas.height <= 399) {
-                      fontSize = 16; // Mobile
-                      coeffW = 0.9;
-                      coeffH = 0.57;
-                      interL = 14;
-                    }
-
-                    ctx.font = `${fontSize}px Poppins, sans-serif`;
-                    ctx.fillStyle = "white";
-                    ctx.textAlign = "center";
-
-                    // Wrap text pour l'adapter à la largeur
-                    const maxWidth = canvas.width * coeffW;
-                    const words = text.split(' ');
-                    let line = '';
-                    let y = canvas.height * coeffH;
-
-                    for (let i = 0; i < words.length; i++) {
-                      const testLine = line + words[i] + ' ';
-                      const metrics = ctx.measureText(testLine);
-
-                      if (metrics.width > maxWidth && i > 0) {
-                        ctx.fillText(line, canvas.width / 2, y);
-                        line = words[i] + ' ';
-                        y += interL; // Interligne
-                      } else {
-                        line = testLine;
-                      }
-                    }
-                    ctx.fillText(line, canvas.width / 2, y);
+                    drawTextOnCanvas(ctx, text, canvas.width, canvas.height);
                   }
 
                   // Télécharger l'image
@@ -175,7 +128,10 @@ export default function ImageUpload() {
                 };
                 overlayImg.src = overlayImage;
               } else {
-                // Si pas d'overlay, télécharger directement
+                // Si pas d'overlay, ajouter le texte et télécharger
+                if (text) {
+                  drawTextOnCanvas(ctx, text, canvas.width, canvas.height);
+                }
                 canvas.toBlob((blob) => {
                   if (blob) {
                     saveAs(blob, "ma-cotedivoire-mapaix.png");
@@ -190,35 +146,10 @@ export default function ImageUpload() {
               const overlayImg = document.createElement('img');
               overlayImg.crossOrigin = "anonymous";
               overlayImg.onload = () => {
-                // Dessiner l'overlay pour remplir complètement le canvas
                 ctx.drawImage(overlayImg, 0, 0, canvas.width, canvas.height);
 
-                // Ajouter le texte si présent
-                // Première occurrence - quand il y a une image de fond et un overlay
                 if (text) {
-                  ctx.font = "18px Poppins, sans-serif";
-                  ctx.fillStyle = "white";
-                  ctx.textAlign = "center";
-
-                  // Wrap text pour l'adapter à la largeur
-                  const maxWidth = canvas.width * 0.8;
-                  const words = text.split(' ');
-                  let line = '';
-                  let y = canvas.height * 0.50; // Modifié de 0.58 à 0.50 pour monter le texte
-
-                  for (let i = 0; i < words.length; i++) {
-                    const testLine = line + words[i] + ' ';
-                    const metrics = ctx.measureText(testLine);
-
-                    if (metrics.width > maxWidth && i > 0) {
-                      ctx.fillText(line, canvas.width / 2, y);
-                      line = words[i] + ' ';
-                      y += 18; // Interligne
-                    } else {
-                      line = testLine;
-                    }
-                  }
-                  ctx.fillText(line, canvas.width / 2, y);
+                  drawTextOnCanvas(ctx, text, canvas.width, canvas.height);
                 }
 
                 canvas.toBlob((blob) => {
@@ -230,46 +161,8 @@ export default function ImageUpload() {
               overlayImg.src = overlayImage;
             } else {
               // Ni image de fond ni overlay, juste le texte
-              // Deuxième occurrence - quand il y a seulement un overlay
               if (text) {
-                ctx.font = "18px Poppins, sans-serif";
-                ctx.fillStyle = "white";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-
-                // Wrap text pour l'adapter à la largeur
-                const maxWidth = canvas.width * 0.8;
-                const words = text.split(' ');
-                const lines = [];
-                let currentLine = '';
-
-                // Préparation des lignes
-                for (let i = 0; i < words.length; i++) {
-                  const testLine = currentLine + words[i] + ' ';
-                  const metrics = ctx.measureText(testLine);
-
-                  if (metrics.width > maxWidth && i > 0) {
-                    lines.push(currentLine.trim());
-                    currentLine = words[i] + ' ';
-                  } else {
-                    currentLine = testLine;
-                  }
-                }
-                if (currentLine.trim()) {
-                  lines.push(currentLine.trim());
-                }
-
-                // Calcul de la position verticale de départ
-                let startY = canvas.height * 0.50; // Modifié de 0.58 à 0.50 pour monter le texte
-                if (lines.length > 1) {
-                  // Ajuster la position de départ en fonction du nombre de lignes
-                  startY = canvas.height * 0.50 - ((lines.length - 1) * 9);
-                }
-
-                // Dessin du texte ligne par ligne
-                for (let i = 0; i < lines.length; i++) {
-                  ctx.fillText(lines[i], canvas.width / 2, startY + (i * 18));
-                }
+                drawTextOnCanvas(ctx, text, canvas.width, canvas.height);
               }
 
               canvas.toBlob((blob) => {
@@ -285,6 +178,51 @@ export default function ImageUpload() {
         alert("Une erreur s'est produite lors de la génération de l'image. Veuillez réessayer.");
       }
     }
+  };
+
+  // 🔧 FONCTION UTILITAIRE : Dessiner le texte de manière cohérente
+  const drawTextOnCanvas = (ctx: CanvasRenderingContext2D, textContent: string, canvasWidth: number, canvasHeight: number) => {
+    // Calcul responsive de la taille de police
+    let fontSize;
+    let coeffW = 0.8;
+    let coeffH = 0.58;
+    let interL = 18;
+
+    if (canvasHeight >= 632) {
+      fontSize = 20; // PC
+    } else if (canvasHeight >= 400 && canvasHeight < 631) {
+      fontSize = 18; // Tablette
+      coeffH = 0.57;
+    } else if (canvasHeight <= 399) {
+      fontSize = 16; // Mobile
+      coeffW = 0.9;
+      coeffH = 0.57;
+      interL = 14;
+    }
+
+    ctx.font = `${fontSize}px Poppins, sans-serif`;
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+
+    // Wrap text pour l'adapter à la largeur
+    const maxWidth = canvasWidth * coeffW;
+    const words = textContent.split(' ');
+    let line = '';
+    let y = canvasHeight * coeffH;
+
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i] + ' ';
+      const metrics = ctx.measureText(testLine);
+
+      if (metrics.width > maxWidth && i > 0) {
+        ctx.fillText(line, canvasWidth / 2, y);
+        line = words[i] + ' ';
+        y += interL; // Interligne
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, canvasWidth / 2, y);
   };
 
   // Gestion du glisser-déposer
@@ -314,7 +252,7 @@ export default function ImageUpload() {
 
   const handleTouchMove = (event: React.TouchEvent) => {
     if (isDragging && event.touches.length > 0) {
-      event.preventDefault(); // Empêche le défilement de la page pendant le glissement
+      event.preventDefault();
       const touch = event.touches[0];
       const rect = resultRef.current?.getBoundingClientRect();
       if (rect) {
@@ -343,9 +281,8 @@ export default function ImageUpload() {
         fill
         priority
       />
-      <div
-        className="grid md:grid-cols-2 grid-cols-1 gap-4 items-start bg-white pb-20 rounded-lg w-full max-w-[100%] lg:max-w-[1500px] mx-auto px-4"
-      >
+      <div className="grid md:grid-cols-2 grid-cols-1 gap-4 items-start bg-white pb-20 rounded-lg w-full max-w-[100%] lg:max-w-[1500px] mx-auto px-4">
+
         <div className="mt-8 md:ml-8">
           <h2 className="text-lg font-semibold">ETAPE 1 : Choisir un Sticker</h2>
 
@@ -369,7 +306,6 @@ export default function ImageUpload() {
           {/* Contrôles du texte */}
           <h2 className="text-lg font-semibold mb-4 mt-8">Etape 2 : Choisir un message de paix</h2>
           <div className="space-y-2 border border-gray-300 rounded-lg p-4 bg-white shadow-md">
-
             <div className="flex flex-col space-y-2 mt-2">
               <label className="flex items-center">
                 <input
@@ -418,16 +354,10 @@ export default function ImageUpload() {
                 <p className="w-[80%] max-w-[600px]">La paix est un don précieux de Dieu. En cette saison électorale, prions pour la paix et agissons avec amour et tolérance.</p>
               </label>
             </div>
-
-
-
           </div>
-
-
-
         </div>
-        <div>
 
+        <div>
           <h2 className="text-lg font-semibold mb-4 mt-8">Etape 3 : Télécharger votre image en appuyant sur le bouton &quot;Télécharger&quot;</h2>
 
           <div className="flex flex-col w-full bg-gray-100 p-1 min-h-[350px] md:min-h-[380px] lg:min-h-[550px]">
@@ -438,9 +368,7 @@ export default function ImageUpload() {
                 className="relative flex items-center justify-center border border-dashed rounded-lg bg-white overflow-hidden"
                 style={{
                   aspectRatio: "1 / 1",
-                  backgroundImage: backgroundImage
-                    ? `url(${backgroundImage})`
-                    : "none",
+                  backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
                   backgroundSize: `${zoom}%`,
                   backgroundPosition: `${backgroundPosition.x}% ${backgroundPosition.y}%`,
                   backgroundRepeat: "no-repeat",
@@ -470,10 +398,7 @@ export default function ImageUpload() {
                 )}
 
                 {/* Zone de téléchargement d'image */}
-                <div
-                  //{...getRootProps()}
-                  className="max-w-[200px] h-full flex items-center justify-center cursor-pointer"
-                >
+                <div className="max-w-[200px] h-full flex items-center justify-center cursor-pointer">
                   <input {...getInputProps()} />
                   {!backgroundImage && (
                     <p className="text-gray-400">
@@ -490,24 +415,22 @@ export default function ImageUpload() {
                         left: "50%",
                         transform: "translate(-50%, -50%)",
                         color: "#ffffff",
-                        fontSize: "clamp(9px, 3vw, 18px)", // Taille responsive
+                        fontSize: "clamp(9px, 3vw, 18px)",
                         fontFamily: "'Poppins', sans-serif",
                         textAlign: "center",
                         pointerEvents: "none",
-                        width: "80%",           // Ajuste la largeur du texte
-                        maxWidth: "600px",      // Empêche une largeur excessive
-                        letterSpacing: "1px",   // Espacement entre les lettres
-                        lineHeight: "1",      // Ajustement des interlignes
-                        wordBreak: "break-word" // Gère la césure des mots longs
+                        width: "80%",
+                        maxWidth: "600px",
+                        letterSpacing: "1px",
+                        lineHeight: "1",
+                        wordBreak: "break-word"
                       }}
                     >
                       {text}
                     </div>
                   )}
-
                 </div>
               </div>
-
             </div>
           </div>
 
@@ -538,7 +461,6 @@ export default function ImageUpload() {
               </Button>
             </div>
           </div>
-
         </div>
       </div>
     </div>
